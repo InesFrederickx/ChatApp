@@ -1,5 +1,6 @@
 import React from 'react'
 import { useState } from "react";
+import { useEffect } from "react";
 
 
 function Chat({ socket, username, room }) {
@@ -14,9 +15,23 @@ function Chat({ socket, username, room }) {
                 new Date(Date.now()).getMinutes(),
             };
 
-            awaitsocket.emit("send_message", messageData)
+            await socket.emit("send_message", messageData)
         }
     };
+
+    useEffect(() => {
+        const messageHandler = (data) => {
+            console.log(data);
+        };
+    
+        socket.on("receive_message", messageHandler);
+    
+        // Clean up the listener when the component unmounts or re-renders
+        return () => {
+            socket.off("receive_message", messageHandler);
+        };
+    }, [socket]);
+
   return (
     <div>
         <div className='chat-header'>
@@ -26,7 +41,7 @@ function Chat({ socket, username, room }) {
         <div className='chat-footer'>
             <input type="text" placeholder='Hey...' onChange={(event) =>
         {setCurrentMessage(event.target.value)}} />
-            <button>&#9658;</button>
+            <button onClick={sendMessage}>&#9658;</button>
         </div>
     </div>
   )
